@@ -1,0 +1,20 @@
+{
+	"name": [{"text": "vProject2JSON"}, {"locale":"EN", "text": "vProject2JSON"}],
+    "version": 1,
+	"actions":
+	[
+		{
+			"text": [{"text": "&Exportar JSON"}, {"locale":"EN", "text": "&Export JSON"}],
+			"icon": "",
+			"function": "",
+			"insert": {"menu": ["&Proyectos"], "afterAction": "&Propiedades del proyecto"}
+		}
+	],
+	"description" : "Exporta los objetos y propiedades del proyecto en formato JSON.",
+	"files" :
+	[
+		{ "filename" : "manifest.json", "relativePath" : "" },
+		{ "filename" : "main.qml", "relativePath" : "" },
+		{ "filename" : "export.js", "relativePath" : "" }
+	]
+}
