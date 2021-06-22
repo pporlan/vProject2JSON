@@ -2,6 +2,7 @@
 // Constants
 // ------------------
 var OBJECT_TYPES = objectTypes();
+
 // ------------------
 // Globals
 // ------------------
@@ -12,11 +13,6 @@ var exportProperties = false;
 var projects = [];
 var files = [];
 var directory = "";
-
-/*
-function testMd5(){
-    return MD5.md5("hola");
-}*/
 
 // ---------------------------------
 // Export project to JSON
