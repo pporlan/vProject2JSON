@@ -15,6 +15,7 @@
 	[
 		{ "filename" : "manifest.json", "relativePath" : "" },
 		{ "filename" : "main.qml", "relativePath" : "" },
-		{ "filename" : "export.js", "relativePath" : "" }
+		{ "filename" : "export.js", "relativePath" : "" },
+        { "filename" : "md5.min.js", "relativePath" : "" }
 	]
 }

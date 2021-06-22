@@ -1,6 +1,11 @@
 // ------------------
+// Constants
+// ------------------
+var OBJECT_TYPES = objectTypes();
+// ------------------
 // Globals
 // ------------------
+var generateObjectMD5 = false;
 var exportLegacyProjects = false;
 var exportSubObjects = false;
 var exportProperties = false;
@@ -8,11 +13,18 @@ var projects = [];
 var files = [];
 var directory = "";
 
+/*
+function testMd5(){
+    return MD5.md5("hola");
+}*/
+
 // ---------------------------------
 // Export project to JSON
 // ---------------------------------
 function exportProject(projectInfo, timestamp)
 {
+    var currentType, objectCount;
+
 	if(!timestamp){
 		timestamp = new Date().toISOString().slice(0, 19).replace(/\D/g, "");
 		projects = [];
@@ -24,6 +36,9 @@ function exportProject(projectInfo, timestamp)
 	}
 	projects.push(projectInfo.id());
 
+    // ------------------------
+	// Collect project info
+	// ------------------------
 	var projectData = {
 		id      : projectInfo.id(),
 		alias   : projectInfo.alias(),
@@ -33,16 +48,24 @@ function exportProject(projectInfo, timestamp)
 		objects : []
 	};
 	
-	for(var i in objectTypes()){
-		for(var j = 0; j < projectInfo.objectCount(i); j++){
-			projectData.objects.push(getObjectData(projectInfo.objectInfo(i, j)));
+    // ------------------------
+	// Get objects
+	// ------------------------
+	for(var i in OBJECT_TYPES){
+        currentType = OBJECT_TYPES[i];
+        progressInfo.description = getObjectTypeName(currentType);
+        objectCount = projectInfo.objectCount(currentType);
+		for(var j = 0; j < objectCount; j++){
+			projectData.objects.push(getObjectData(projectInfo.objectInfo(currentType, j), 0));
+            theApp.processEvents();
+            objectProgressBar.value = Math.round((j / objectCount) * 100);
 		}
+        typeProgressBar.value = Math.round((i / OBJECT_TYPES.length) * 100);
 	}
 
 	// ------------------------
 	// Write JSON file
 	// ------------------------
-	var path = directory + "/" + timestamp + "_" + projectInfo.id() + ".json";
 	var path = directory + "/" + timestamp + "_" + (projectInfo.alias() ? projectInfo.alias() : projectInfo.name()).replace(/\W/g, "") + "_" + projectInfo.id() + ".json";
 	files.push(path);
 	var file = theExtension.newFile(path);
@@ -51,6 +74,9 @@ function exportProject(projectInfo, timestamp)
 	file.flush();
 	file.close();
 	
+    // ------------------------
+	// Export legacy projects
+	// ------------------------
 	if(exportLegacyProjects){
 		for(var i = 0; i < projectInfo.legacyProjectCount(); i++){
 			exportProject(projectInfo.legacyProjectInfo(i), timestamp);
@@ -58,7 +84,8 @@ function exportProject(projectInfo, timestamp)
 	}
 }
 
-function getObjectData(objectInfo){
+function getObjectData(objectInfo, level){
+    var currentType, subObjectCount;
 	var objectData = {
 		id         : objectInfo.id(),
 		comments   : objectInfo.comments(),
@@ -66,7 +93,7 @@ function getObjectData(objectInfo){
 		type       : objectInfo.type(),
 		typeName   : getObjectTypeName(objectInfo.type()),
 	};
-	if(exportProperties){
+	if(exportProperties || generateObjectMD5){
 		objectData.properties = [];
 		for(var i = 0; i < objectInfo.propertyCount(); i++){
 			var property = {
@@ -80,20 +107,29 @@ function getObjectData(objectInfo){
 			objectData.properties.push(property);
 		}
 	}
-	if(exportSubObjects){
+	if(exportSubObjects || generateObjectMD5){
 		objectData.subObjects = [];
-		for(var i in objectTypes()){
-			for(var j = 0; j < objectInfo.subObjectCount(i); j++){
-				objectData.subObjects.push(getObjectData(objectInfo.subObjectInfo(i, j)));
+		for(var i in OBJECT_TYPES){
+            currentType = OBJECT_TYPES[i];
+            subObjectCount = objectInfo.subObjectCount(currentType)
+			for(var j = 0; j < subObjectCount; j++){
+				objectData.subObjects.push(getObjectData(objectInfo.subObjectInfo(currentType, j), level + 1));
 			}
 		}
 	}
+    if(generateObjectMD5 && level == 0){
+        //objectData.md5 = theApp.calculateHash(JSON.stringify(objectData), VApp.Md5);
+        objectData.md5 = theApp.calculateHash(JSON.stringify(objectData), 1);
+        if(!exportProperties) delete objectData.properties;
+        if(!exportSubObjects) delete objectData.subObjects;
+    }
+
 	return objectData;
 }
 
 function getPropertyData(type, data){
-	//return data;
-	return JSON.stringify(data);
+	return data;
+	//return JSON.stringify(data);
 }
 
 // -------------------------------------
